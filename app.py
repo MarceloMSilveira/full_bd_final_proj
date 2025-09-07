@@ -64,6 +64,14 @@ class Artist(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
+class Show(db.Model):
+   __tablename__='Show'
+  
+   id = db.Column(db.Integer, primary_key=True)
+   id_artist = db.Column(db.Integer, db.ForeignKey('Artist.id'))
+   id_venue = db.Column(db.Integer, db.ForeignKey('Venue.id'))
+   date = db.Column(db.DateTime)
+
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 with app.app_context():
    db.create_all()
