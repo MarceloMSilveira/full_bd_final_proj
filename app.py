@@ -73,6 +73,7 @@ class Show(db.Model):
    date = db.Column(db.DateTime)
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+
 with app.app_context():
    db.create_all()
 #----------------------------------------------------------------------------#
@@ -237,14 +238,39 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  form = VenueForm()
+  if form.validate_on_submit():
+    genres_list = form.genres.data
+    genres = ','.join(genres_list)
+    new_venue = Venue(
+        city = form.city.data,
+        state = form.state.data,
+        address = form.address.data,
+        phone = form.phone.data,
+        genres = genres,
+        image_link = form.image_link.data,
+        facebook_link = form.facebook_link.data,
+        website_link = form.website_link.data,
+        looking_talent = form.seeking_talent.data,
+        seeking_description = form.seeking_description.data
+    )
+    try:
+      db.session.add(new_venue)
+      db.session.commit()
+      print(new_venue.id)
+      # on successful db insert, flash success
+      flash('Venue ' + new_venue.name+ ' was successfully listed!')
+    except Exception as e:
+       db.session.rollback()
+       print(f"Ocorreu um erro inesperado: {str(e)}")
+       flash('An error occurred. Venue ' + form.name.data + ' could not be listed.')
+    finally:
+       db.session.close()
 
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  else:
+     flash(' Error inserting Venue ' + form.name.data)
+     print(form.errors)
+  
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -255,6 +281,8 @@ def delete_venue(venue_id):
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
   return None
+
+
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -430,6 +458,8 @@ def create_artist_form():
 
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
+  form = ArtistForm()
+  
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
