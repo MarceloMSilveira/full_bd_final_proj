@@ -4,6 +4,7 @@
 
 import json
 import dateutil.parser
+from datetime import datetime, date, time
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_moment import Moment
@@ -83,12 +84,23 @@ with app.app_context():
 #----------------------------------------------------------------------------#
 
 def format_datetime(value, format='medium'):
-  date = dateutil.parser.parse(value)
+  if value is None:
+    return ''
+
+  # 1) Normalize para datetime
+  if isinstance(value, datetime):
+      dt = value
+  elif isinstance(value, date):
+      dt = datetime.combine(value, time.min)
+  else:
+      dt = dateutil.parser.parse(str(value))  # só parseia se for string
+    
   if format == 'full':
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
       format="EE MM, dd, y h:mma"
-  return babel.dates.format_datetime(date, format, locale='en')
+  
+  return babel.dates.format_datetime(dt, format, locale='en')
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -148,8 +160,7 @@ def search_venues():
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
-  # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
+  # done
   try:
     data = db.get_or_404(Venue,venue_id)
     genres = data.genres.split(',')
@@ -363,10 +374,16 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-  stmt = db.select(Show.id_venue, Venue.name).join(Artist).join(Venue)
-  data = db.session.execute(stmt).scalars()
-  for each_item in data:
-    print(each_item.id_venue, each_item.ven_name, )
+  stmt = db.select(
+    Show.id_venue.label('venue_id'), 
+    Show.id_artist.label('artist_id'),
+    Show.date.label('start_time'),
+    Artist.name.label('artist_name'),
+    Artist.image_link.label('artist_image_link'), 
+    Venue.name.label('venue_name')).join(Venue).join(Artist)
+  
+  data = db.session.execute(stmt).all()
+    
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
