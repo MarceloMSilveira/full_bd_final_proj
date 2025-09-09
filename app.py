@@ -363,7 +363,7 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-  stmt = db.select(Show.id_venue as id_venue, Venue.name as ven_name).join(Artist).join(Venue)
+  stmt = db.select(Show.id_venue, Venue.name).join(Artist).join(Venue)
   data = db.session.execute(stmt).scalars()
   for each_item in data:
     print(each_item.id_venue, each_item.ven_name, )
