@@ -184,27 +184,39 @@ def show_venue(venue_id):
   try:
     data = db.get_or_404(Venue,venue_id)
     genres = data.genres.split(',')
-    data.genres = genres
-    data.upcoming_shows = []
-    data.past_shows = []    
+    venue = {
+      'id':data.id,
+      'name':data.name,
+      'city':data.city,
+      'state':data.state,
+      'genres':genres,
+      'image_link':data.image_link,
+      'upcoming_shows': [],
+      'past_shows': [],
+      'upcoming_shows_count': 0,
+      'past_shows_count': 0,
+    }    
     shows = data.shows
     for show in shows:
       artist_id = show.id_artist
       artist = db.session.execute(db.select(Artist.name, Artist.image_link).filter_by(id=artist_id)).one()
-      new_show = {}
-      new_show.artist_name = artist.name
-      new_show.artist_image_link = artist.image_link
-      new_show.start_time = show.date
-      new_show.artist_id = artist_id
+      new_show = {
+        "artist_name": artist.name,
+        "artist_image_link": artist.image_link,
+        "start_time": show.date,
+        "artist_id": artist_id
+      }
+      
       now = datetime.now()
-      if show.date > now:
-        data.upcoming_shows.append(new_show)
+      if new_show['start_time'] > now:
+        venue['upcoming_shows'].append(new_show)
       else:
-        data.past_shows.append(new_show)
+        venue['past_shows'].append(new_show)
           
-       #artist_name = db.get_or_404(Artist.name,show.id_artist).scalar()
-       #print(artist_name)
-    return render_template('pages/show_venue.html', venue=data)
+    venue['upcoming_shows_count'] = len(venue['upcoming_shows'])
+    venue['past_shows_count'] = len(venue['past_shows'])
+    return render_template('pages/show_venue.html', venue=venue)
+  
   except Exception as e:
     print(str(e))
     flash(f"Venue with id {venue_id} not found")
