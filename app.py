@@ -120,27 +120,47 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  
+  def get_qtt_upcoming_shows(venue_id):
+    venue = db.get_or_404(Venue, venue_id)
+    now = datetime.now()
+    upcoming_shows_count = len([show for show in venue.shows if show.date>now])
+    return upcoming_shows_count
+
+
+  stmt = db.select(
+     Venue.city, Venue.state, Venue.name, Venue.id
+     ).order_by(Venue.city,Venue.state,Venue.name)
+  
+  rows = db.session.execute(stmt).mappings().all()
+
+  #agora vou tentar montar a list data com a list venues dentro
+
+  data = []
+  previous_key = None
+
+  for row in rows:
+    key = (row['city'],row['state'])
+
+    if (previous_key != key):
+      actual_place = {
+         "city":row['city'],
+         "state":row['state'],
+         "venues":[]
+      }
+      data.append(actual_place)
+      previous_key = key
+
+    actual_place["venues"].append(
+      {
+        "id": row['id'],
+        "name": row['name'], 
+        "num_upcoming_shows": get_qtt_upcoming_shows(row['id'])
+      }
+    )   
+
+
+
   return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
@@ -165,8 +185,28 @@ def show_venue(venue_id):
     data = db.get_or_404(Venue,venue_id)
     genres = data.genres.split(',')
     data.genres = genres
+    data.upcoming_shows = []
+    data.past_shows = []    
+    shows = data.shows
+    for show in shows:
+      artist_id = show.id_artist
+      artist = db.session.execute(db.select(Artist.name, Artist.image_link).filter_by(id=artist_id)).one()
+      new_show = {}
+      new_show.artist_name = artist.name
+      new_show.artist_image_link = artist.image_link
+      new_show.start_time = show.date
+      new_show.artist_id = artist_id
+      now = datetime.now()
+      if show.date > now:
+        data.upcoming_shows.append(new_show)
+      else:
+        data.past_shows.append(new_show)
+          
+       #artist_name = db.get_or_404(Artist.name,show.id_artist).scalar()
+       #print(artist_name)
     return render_template('pages/show_venue.html', venue=data)
-  except:
+  except Exception as e:
+    print(str(e))
     flash(f"Venue with id {venue_id} not found")
     return render_template('pages/home.html')
 
