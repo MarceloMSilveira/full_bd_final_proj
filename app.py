@@ -311,9 +311,46 @@ def show_artist(artist_id):
   try:
     data = db.get_or_404(Artist,artist_id)
     genres = data.genres.split(',')
-    data.genres = genres
-    return render_template('pages/show_artist.html', artist=data)
-  except:
+    new_artist ={
+      "id":data.id,
+      "name":data.name,
+      "genres":genres,
+      "city":data.city,
+      "state":data.state,
+      "phone":data.phone,
+      "seeking_venue":data.looking_venue,
+      "seeking_description":data.seeking_description,
+      "image_link":data.image_link,
+      "past_shows":[],
+      "upcoming_shows":[],
+      "past_shows_count":0,
+      "upcoming_shows_count":0,
+    }
+    
+    shows = data.shows
+    for show in shows:
+      venue_id = show.id_venue
+      venue = db.session.execute(db.select(Venue.name, Venue.image_link).filter_by(id=venue_id)).one()
+      new_show ={
+        'venue_id':venue_id,
+        'venue_image_link':venue.image_link,
+        'venue_name':venue.name,
+        'start_time':show.date
+      }
+
+      now = datetime.now()
+
+      if new_show['start_time'] > now:
+        new_artist['upcoming_shows'].append(new_show)
+      else:
+        new_artist['past_shows'].append(new_show)
+
+    new_artist['upcoming_shows_count'] = len(new_artist['upcoming_shows'])
+    new_artist['past_shows_count'] = len(new_artist['past_shows'])
+
+    return render_template('pages/show_artist.html', artist=new_artist)
+  except Exception as e:
+    print(str(e))
     flash(f"Artist id={artist_id} not found")
     return render_template('pages/home.html')
 
@@ -321,27 +358,57 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
-  # TODO: populate form with fields from artist with ID <artist_id>
-  return render_template('forms/edit_artist.html', form=form, artist=artist)
+  try:
+    data = db.get_or_404(Artist,artist_id)
+    genres = (data.genres).split(',')
+    artist = {
+      "id":data.id,
+      "name":data.name,
+      "genres":genres,
+      "city":data.city,
+      "state":data.state,
+      "phone":data.phone,
+      "seeking_venue":data.looking_venue,
+      "seeking_description":data.seeking_description,
+      "image_link":data.image_link
+    }
+    form = ArtistForm(data=artist)
+    return render_template('forms/edit_artist.html', form=form, artist=artist)
+  except Exception as e:
+    print(str(e))
+    flash(f"Fail on updating artist with id{artist_id}")
+    return render_template('pages/home.html')
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
+  form = ArtistForm()
+  if form.validate_on_submit():
+    print('test')
+    try:
+      artist = db.get_or_404(Artist,artist_id)
+      genres = ','.join(form.genres.data or [])
+      
+      artist.name = form.name.data
+      artist.city = form.city.data
+      artist.state = form.state.data
+      artist.phone = form.phone.data
+      artist.genres = genres
+      artist.image_link = form.image_link.data
+      artist.facebook_link = form.facebook_link.data
+      artist.website_link = form.website_link.data
+      artist.looking_venue = form.seeking_venue.data
+      artist.seeking_description = form.seeking_description.data
+
+      db.session.commit()
+
+    except Exception as e:
+      db.session.rollback()
+      print(str(e))
+      flash('Erro ao tentar atualizar o artista!')
+  else:
+    for field, errors in form.errors.items():
+      for error in errors:
+        flash(f'Erro no campo {getattr(form, field).label.text}: {error}')
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
