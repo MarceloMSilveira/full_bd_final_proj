@@ -191,6 +191,8 @@ def show_venue(venue_id):
       'state':data.state,
       'genres':genres,
       'image_link':data.image_link,
+      'seeking_talent':data.looking_talent,
+      'seeking_description':data.seeking_description,
       'upcoming_shows': [],
       'past_shows': [],
       'upcoming_shows_count': 0,
@@ -376,7 +378,7 @@ def edit_artist(artist_id):
     return render_template('forms/edit_artist.html', form=form, artist=artist)
   except Exception as e:
     print(str(e))
-    flash(f"Fail on updating artist with id{artist_id}")
+    flash(f"Fail on finding data for artist with id{artist_id}")
     return render_template('pages/home.html')
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -414,28 +416,34 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
-  }
-  # TODO: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=venue)
+  try:
+    data = db.get_or_404(Venue,venue_id)
+    genres = data.genres.split(',')
+    venue = {
+      'id':data.id,
+      'name':data.name,
+      'genres': genres,
+      'city':data.city,
+      'state':data.state,
+      'genres':genres,
+      'image_link':data.image_link,
+      'address':data.address,
+      'website_link':data.website_link,
+      'facebook_link':data.facebook_link, 
+      'seeking_talent':data.looking_talent,
+      'seeking_description':data.seeking_description,
+      'image_link' :data.image_link
+    }
+    form = VenueForm(data=venue)
+    return render_template('forms/edit_venue.html', form=form, venue=venue)
+  except Exception as e:
+    print(str(e))
+    flash(f"Fail on finding data for venue with id{venue_id}")
+    return render_template('pages/home.html')
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
+  
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
