@@ -443,8 +443,35 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
+  form = VenueForm()
+  if (form.validate_on_submit()):
+    try:
+      venue = db.get_or_404(Venue,venue_id)
+      genres_list = form.genres.data
+      genres = ','.join(genres_list)
+    
+      venue.name = form.name.data
+      venue.city = form.city.data
+      venue.state = form.state.data
+      venue.address = form.address.data
+      venue.phone = form.phone.data
+      venue.genres = genres
+      venue.image_link = form.image_link.data
+      venue.facebook_link = form.facebook_link.data
+      venue.website_link = form.website_link.data
+      venue.looking_talent = form.seeking_talent.data
+      venue.seeking_description = form.seeking_description.data
+
+      db.session.commit()
+      return redirect(url_for('show_venue', venue_id=venue_id))
+    
+    except Exception as e:
+      print(str(e))
+    
+  else:
+    flash('Falha ao validar formulário de atualização de venue')
+    return redirect(url_for('index'))
   
-  return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
 #  ----------------------------------------------------------------
