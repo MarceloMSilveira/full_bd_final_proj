@@ -2,15 +2,15 @@
 # Imports
 #----------------------------------------------------------------------------#
 
-import json
+#import json
 import dateutil.parser
 from datetime import datetime, date, time
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_moment import Moment
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form
+#from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
 from config_db import db
@@ -24,12 +24,11 @@ moment = Moment(app)
 app.config.from_object('config')
 db.init_app(app)
 
+migrate = Migrate(app,db)
 
 #models are in a separated file now! 
 
 from models import Venue, Artist, Show
-
-migrate = Migrate(app,db)
 
 with app.app_context():
    db.create_all()
