@@ -226,8 +226,33 @@ def create_venue_submission():
   
   return render_template('pages/home.html')
 
-@app.route('/venues/<venue_id>', methods=['DELETE'])
+@app.route('/venues/<venue_id>/delete', methods=['GET'])
+def delete_venue_form(venue_id):
+  data = db.get_or_404(Venue,venue_id)
+  form = VenueForm()
+  return render_template('forms/delete_venue.html', venue=data, form=form)
+
+#DELETE
+@app.route('/venues/<venue_id>/delete', methods=['POST'])
 def delete_venue(venue_id):
+  form = DeleteVenueForm()
+  if form.validate_on_submit():
+    try:
+      venue = db.get_or_404(Venue,venue_id)
+      db.session.delete(venue)
+      db.session.commit()
+      flash(f'Venue {venue.name} apagada com sucesso!')
+      return render_template('pages/home.html')
+    except Exception as e:
+      print(str(e))
+      flash(f'Falha ao tentar deletar Venue {venue.name}!')
+      return render_template('pages/home.html')
+
+  else:
+    print('falha ao validar formulário')
+    flash(f'Falha ao tentar validar formulário!')
+    return render_template('pages/home.html')
+
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 

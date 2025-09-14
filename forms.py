@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, AnyOf, URL, Optional
 
 class ShowForm(FlaskForm):
@@ -235,3 +235,5 @@ class ArtistForm(FlaskForm):
             'seeking_description'
      )
 
+class DeleteVenueForm(FlaskForm):
+    submit = SubmitField("Delete Venue")
