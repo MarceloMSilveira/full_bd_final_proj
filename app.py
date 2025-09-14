@@ -148,7 +148,7 @@ def show_venue(venue_id):
       'state':data.state,
       'genres':genres,
       'image_link':data.image_link,
-      'seeking_talent':data.looking_talent,
+      'seeking_talent':data.seeking_talent,
       'seeking_description':data.seeking_description,
       'upcoming_shows': [],
       'past_shows': [],
@@ -205,7 +205,7 @@ def create_venue_submission():
         image_link = form.image_link.data,
         facebook_link = form.facebook_link.data,
         website_link = form.website_link.data,
-        looking_talent = form.seeking_talent.data,
+        seeking_talent = form.seeking_talent.data,
         seeking_description = form.seeking_description.data
     )
     try:
@@ -285,7 +285,7 @@ def show_artist(artist_id):
       "city":data.city,
       "state":data.state,
       "phone":data.phone,
-      "seeking_venue":data.looking_venue,
+      "seeking_venue":data.seeking_venue,
       "seeking_description":data.seeking_description,
       "image_link":data.image_link,
       "past_shows":[],
@@ -335,7 +335,7 @@ def edit_artist(artist_id):
       "city":data.city,
       "state":data.state,
       "phone":data.phone,
-      "seeking_venue":data.looking_venue,
+      "seeking_venue":data.seeking_venue,
       "seeking_description":data.seeking_description,
       "image_link":data.image_link
     }
@@ -363,7 +363,7 @@ def edit_artist_submission(artist_id):
       artist.image_link = form.image_link.data
       artist.facebook_link = form.facebook_link.data
       artist.website_link = form.website_link.data
-      artist.looking_venue = form.seeking_venue.data
+      artist.seeking_venue = form.seeking_venue.data
       artist.seeking_description = form.seeking_description.data
 
       db.session.commit()
@@ -395,7 +395,7 @@ def edit_venue(venue_id):
       'address':data.address,
       'website_link':data.website_link,
       'facebook_link':data.facebook_link, 
-      'seeking_talent':data.looking_talent,
+      'seeking_talent':data.seeking_talent,
       'seeking_description':data.seeking_description,
       'image_link' :data.image_link
     }
@@ -424,7 +424,7 @@ def edit_venue_submission(venue_id):
       venue.image_link = form.image_link.data
       venue.facebook_link = form.facebook_link.data
       venue.website_link = form.website_link.data
-      venue.looking_talent = form.seeking_talent.data
+      venue.seeking_talent = form.seeking_talent.data
       venue.seeking_description = form.seeking_description.data
 
       db.session.commit()
@@ -462,7 +462,7 @@ def create_artist_submission():
         image_link = form.image_link.data,
         facebook_link = form.facebook_link.data,
         website_link = form.website_link.data,
-        looking_venue = form.seeking_venue.data,
+        seeking_venue = form.seeking_venue.data,
         seeking_description = form.seeking_description.data
       )
       db.session.add(new_artist)
