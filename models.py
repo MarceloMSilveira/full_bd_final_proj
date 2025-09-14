@@ -2,6 +2,8 @@
 # Models.
 #----------------------------------------------------------------------------#
 from config_db import db
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 from app import db
 class Venue(db.Model):
@@ -13,7 +15,8 @@ class Venue(db.Model):
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(500))
+    genres = db.Column(postgresql.ARRAY(sa.Text), default=list, nullable=True)
+    genres_old = db.Column(db.String(500))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(120))
@@ -32,7 +35,8 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(500))
+    genres = db.Column(postgresql.ARRAY(sa.Text), default=list, nullable=True)
+    genres_old = db.Column(db.String(500))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website_link = db.Column(db.String(500))
