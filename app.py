@@ -140,13 +140,12 @@ def show_venue(venue_id):
   # done
   try:
     data = db.get_or_404(Venue,venue_id)
-    genres = data.genres.split(',')
     venue = {
       'id':data.id,
       'name':data.name,
       'city':data.city,
       'state':data.state,
-      'genres':genres,
+      'genres':data.genres,
       'image_link':data.image_link,
       'seeking_talent':data.seeking_talent,
       'seeking_description':data.seeking_description,
@@ -193,15 +192,15 @@ def create_venue_form():
 def create_venue_submission():
   form = VenueForm()
   if form.validate_on_submit():
-    genres_list = form.genres.data
-    genres = ','.join(genres_list)
+    #genres_list = form.genres.data
+    #genres = ','.join(genres_list)
     new_venue = Venue(
         name = form.name.data,
         city = form.city.data,
         state = form.state.data,
         address = form.address.data,
         phone = form.phone.data,
-        genres = genres,
+        genres = form.genres.data,
         image_link = form.image_link.data,
         facebook_link = form.facebook_link.data,
         website_link = form.website_link.data,
@@ -277,11 +276,11 @@ def show_artist(artist_id):
   
   try:
     data = db.get_or_404(Artist,artist_id)
-    genres = data.genres.split(',')
+    #genres = data.genres.split(',')
     new_artist ={
       "id":data.id,
       "name":data.name,
-      "genres":genres,
+      "genres":data.genres,
       "city":data.city,
       "state":data.state,
       "phone":data.phone,
@@ -321,17 +320,60 @@ def show_artist(artist_id):
     flash(f"Artist id={artist_id} not found")
     return render_template('pages/home.html')
 
+#  Create Artist
+#  ----------------------------------------------------------------
+
+@app.route('/artists/create', methods=['GET'])
+def create_artist_form():
+  form = ArtistForm()
+  return render_template('forms/new_artist.html', form=form)
+
+@app.route('/artists/create', methods=['POST'])
+def create_artist_submission():
+  form = ArtistForm()
+  if form.validate_on_submit():
+    # genres_list = form.genres.data
+    # genres = ",".join(genres_list)
+    try:
+      new_artist = Artist(
+        name = form.name.data,
+        city = form.city.data,
+        state = form.state.data,
+        phone = form.phone.data,
+        genres = form.genres.data,
+        image_link = form.image_link.data,
+        facebook_link = form.facebook_link.data,
+        website_link = form.website_link.data,
+        seeking_venue = form.seeking_venue.data,
+        seeking_description = form.seeking_description.data
+      )
+      db.session.add(new_artist)
+      db.session.commit()
+      flash('Artist ' + request.form['name'] + ' was successfully listed!')  
+    except Exception as e:
+      db.session.rollback()
+      print(f"error inserting Artist: {str(e)}")
+      flash('An error occurred. Artist ' + form.name.data + ' could not be listed.')
+    finally:
+      db.session.close()
+  else:
+    flash('An error occurred. Artist ' + form.name.data + ' could not be listed.')
+
+  return render_template('pages/home.html')
+
+
+
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   try:
     data = db.get_or_404(Artist,artist_id)
-    genres = (data.genres).split(',')
+    #genres = (data.genres).split(',')
     artist = {
       "id":data.id,
       "name":data.name,
-      "genres":genres,
+      "genres":data.genres,
       "city":data.city,
       "state":data.state,
       "phone":data.phone,
@@ -353,13 +395,13 @@ def edit_artist_submission(artist_id):
     print('test')
     try:
       artist = db.get_or_404(Artist,artist_id)
-      genres = ','.join(form.genres.data or [])
+      #genres = ','.join(form.genres.data or [])
       
       artist.name = form.name.data
       artist.city = form.city.data
       artist.state = form.state.data
       artist.phone = form.phone.data
-      artist.genres = genres
+      artist.genres = form.genres.data
       artist.image_link = form.image_link.data
       artist.facebook_link = form.facebook_link.data
       artist.website_link = form.website_link.data
@@ -383,14 +425,13 @@ def edit_artist_submission(artist_id):
 def edit_venue(venue_id):
   try:
     data = db.get_or_404(Venue,venue_id)
-    genres = data.genres.split(',')
+    #genres = data.genres.split(',')
     venue = {
       'id':data.id,
       'name':data.name,
-      'genres': genres,
       'city':data.city,
       'state':data.state,
-      'genres':genres,
+      'genres':data.genres,
       'image_link':data.image_link,
       'address':data.address,
       'website_link':data.website_link,
@@ -412,15 +453,15 @@ def edit_venue_submission(venue_id):
   if (form.validate_on_submit()):
     try:
       venue = db.get_or_404(Venue,venue_id)
-      genres_list = form.genres.data
-      genres = ','.join(genres_list)
+      #genres_list = form.genres.data
+      #genres = ','.join(genres_list)
     
       venue.name = form.name.data
       venue.city = form.city.data
       venue.state = form.state.data
       venue.address = form.address.data
       venue.phone = form.phone.data
-      venue.genres = genres
+      venue.genres = form.genres.data
       venue.image_link = form.image_link.data
       venue.facebook_link = form.facebook_link.data
       venue.website_link = form.website_link.data
@@ -437,47 +478,6 @@ def edit_venue_submission(venue_id):
     flash('Falha ao validar formulário de atualização de venue')
     return redirect(url_for('index'))
   
-
-#  Create Artist
-#  ----------------------------------------------------------------
-
-@app.route('/artists/create', methods=['GET'])
-def create_artist_form():
-  form = ArtistForm()
-  return render_template('forms/new_artist.html', form=form)
-
-@app.route('/artists/create', methods=['POST'])
-def create_artist_submission():
-  form = ArtistForm()
-  if form.validate_on_submit():
-    genres_list = form.genres.data
-    genres = ",".join(genres_list)
-    try:
-      new_artist = Artist(
-        name = form.name.data,
-        city = form.city.data,
-        state = form.state.data,
-        phone = form.phone.data,
-        genres = genres,
-        image_link = form.image_link.data,
-        facebook_link = form.facebook_link.data,
-        website_link = form.website_link.data,
-        seeking_venue = form.seeking_venue.data,
-        seeking_description = form.seeking_description.data
-      )
-      db.session.add(new_artist)
-      db.session.commit()
-      flash('Artist ' + request.form['name'] + ' was successfully listed!')  
-    except Exception as e:
-      db.session.rollback()
-      print(f"error inserting Artist: {str(e)}")
-      flash('An error occurred. Artist ' + form.name.data + ' could not be listed.')
-    finally:
-      db.session.close()
-  else:
-    flash('An error occurred. Artist ' + form.name.data + ' could not be listed.')
-
-  return render_template('pages/home.html')
 
 
 #  Shows
