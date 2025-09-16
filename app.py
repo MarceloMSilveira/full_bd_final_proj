@@ -20,14 +20,14 @@ from config_db import db
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-moment = Moment(app)
+moment = Moment(app) #legado
 app.config.from_object('config')
 db.init_app(app)
 
 migrate = Migrate(app,db)
 
 #models are in a separated file now! 
-
+#deve ser importado aqui:
 from models import Venue, Artist, Show
 
 with app.app_context():
